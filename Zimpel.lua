@@ -27,9 +27,10 @@ local Zimpel = {
 -- Constants
 -- ------------------------------------------------
 
-local ENCODING_PATTERN = '{%i,%s}';
-local DECODING_MATCH_PATTERN  = '{%d+,.-}+';
-local DECODING_SPLIT_PATTERN = '{(%d+),(.-)}$';
+local MAX_DICTIONARY_SIZE = 9998;
+local ENCODING_PATTERN = '%4d%s';
+local DECODING_MATCH_PATTERN  = '[%w%s][%w%s][%w%s][%w%s].';
+local DECODING_SPLIT_PATTERN = '([%w%s][%w%s][%w%s][%w%s])(.)';
 
 -- ------------------------------------------------
 -- Private Functions
@@ -41,6 +42,7 @@ local DECODING_SPLIT_PATTERN = '{(%d+),(.-)}$';
 -- @param char       (string) The character to add.
 --
 local function addChar( dictionary, char )
+    assert( #dictionary < MAX_DICTIONARY_SIZE, "Max dictionary size reached." );
     dictionary[#dictionary + 1] = char;
 end
 
@@ -88,7 +90,7 @@ local function convertTableToString( ptable )
         if type( value ) == 'table' then
             for k, v in pairs( value ) do
                 if type( v ) == 'table' then
-                    output = output .. '[\'' .. tostring( k ) .. '\'] = {';
+                    output = output .. '[\'' .. tostring( k ) .. '\']={';
                     toString( v );
                     output = output .. '},';
                 elseif type( k ) == 'number' then
@@ -132,7 +134,7 @@ function Zimpel.encode( rawString )
 
     -- Push any remaining character on the code.
     if prefix ~= "" then
-        code = code .. string.format( ENCODING_PATTERN, 0, prefix );
+        code = code .. string.format( ENCODING_PATTERN, 9999, prefix );
     end
 
     return code;
@@ -157,21 +159,28 @@ function Zimpel.decode( codedString )
     local dictionary = { [0] = "" };
     local message = "";
 
-    local prefixIndex, prefix, nextChar;
+    local postfix = false;
+
     for code in codedString:gmatch( DECODING_MATCH_PATTERN ) do
-        prefixIndex, nextChar = code:match( DECODING_SPLIT_PATTERN );
-        prefix = getChar( dictionary, tonumber( prefixIndex ));
+        local prefixIndex, nextChar = code:match( DECODING_SPLIT_PATTERN );
+        local prefix = getChar( dictionary, tonumber( prefixIndex ));
+
+        -- Last entry reached.
+        if tonumber( prefixIndex ) == MAX_DICTIONARY_SIZE + 1 then
+            postfix = true;
+            break;
+        end
 
         if lookUp( dictionary, prefix .. nextChar ) == 0 then
             message = message .. prefix .. nextChar;
-            prefix, nextChar = nil, nil;
         end
     end
 
     -- Push remaining char on the message. This happens when the code ends with
     -- a character already contained in the dictionary.
-    if nextChar then
-        message = message .. prefix .. nextChar;
+    if postfix then
+        local lastChar = codedString:match( "9999(.+)$" );
+        message = message .. lastChar;
     end
 
     return message;
