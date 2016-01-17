@@ -28,8 +28,8 @@ local Zimpel78 = {
 -- ------------------------------------------------
 
 local ENCODING_PATTERN = '{%i,%s}';
-local DECODING_MATCH_PATTERN  = '{%d+,.-}';
-local DECODING_SPLIT_PATTERN = '{(%d+),(.-)}';
+local DECODING_MATCH_PATTERN  = '{%d+,.-}+';
+local DECODING_SPLIT_PATTERN = '{(%d+),(.-)}$';
 
 -- ------------------------------------------------
 -- Private Functions
@@ -75,6 +75,36 @@ local function lookUp( dictionary, char )
     return 0;
 end
 
+---
+-- Write a lua table as a string file.
+-- @param ptable (table)  The table to process.
+-- @return       (string) The contents of the table written as a string.
+--
+local function convertTableToString( ptable )
+    assert( type( ptable ) == 'table', "Not a lua table!" );
+
+    local output = "{";
+    local function toString( value )
+        if type( value ) == 'table' then
+            for k, v in pairs( value ) do
+                if type( v ) == 'table' then
+                    output = output .. '[\'' .. tostring( k ) .. '\'] = {';
+                    toString( v );
+                    output = output .. '},';
+                elseif type( k ) == 'number' then
+                    output = output .. string.format( "[%i]='%s',", k, v );
+                else
+                    output = output .. string.format( "%s='%s',", k, v );
+                end
+            end
+        end
+    end
+    toString( ptable );
+    output = output .. "}";
+
+    return output;
+end
+
 -- ------------------------------------------------
 -- Public Functions
 -- ------------------------------------------------
@@ -109,6 +139,16 @@ function Zimpel78.encode( rawString )
 end
 
 ---
+-- Encodes a lua table.
+-- @param ptable (table)  The table to convert.
+-- @return       (string) The created code.
+--
+function Zimpel78.encodeTable( ptable )
+    local str = convertTableToString( ptable );
+    return Zimpel78.encode( str );
+end
+
+---
 -- Decodes a string.
 -- @param  codedString (string) The string to decode.
 -- @return             (string) The decoded message.
@@ -135,6 +175,16 @@ function Zimpel78.decode( codedString )
     end
 
     return message;
+end
+
+---
+-- Decode lua table.
+-- @param  codedString (string) The string to decode.
+-- @return             (table)  The decoded table.
+--
+function Zimpel78.encodeTable( codedString )
+    local decodedString = Zimpel78.decode( codedString );
+    return loadstring("return " ..  decodedString)();
 end
 
 return Zimpel78;
