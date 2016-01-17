@@ -1,4 +1,4 @@
-local Zimpel78 = {
+local Zimpel = {
     _VERSION     = '0.0.0',
     _DESCRIPTION = 'A small module able to encode and decode files based on the classic LZ78 algorithm.',
     _URL         = 'https://github.com/rm-code/',
@@ -114,7 +114,7 @@ end
 -- @param  rawString (string) The string to encode.
 -- @return           (string) The created code.
 --
-function Zimpel78.encode( rawString )
+function Zimpel.encode( rawString )
     local dictionary = { [0] = "" };
     local code = "";
 
@@ -143,9 +143,9 @@ end
 -- @param ptable (table)  The table to convert.
 -- @return       (string) The created code.
 --
-function Zimpel78.encodeTable( ptable )
+function Zimpel.encodeTable( ptable )
     local str = convertTableToString( ptable );
-    return Zimpel78.encode( str );
+    return Zimpel.encode( str );
 end
 
 ---
@@ -153,7 +153,7 @@ end
 -- @param  codedString (string) The string to decode.
 -- @return             (string) The decoded message.
 --
-function Zimpel78.decode( codedString )
+function Zimpel.decode( codedString )
     local dictionary = { [0] = "" };
     local message = "";
 
@@ -182,9 +182,9 @@ end
 -- @param  codedString (string) The string to decode.
 -- @return             (table)  The decoded table.
 --
-function Zimpel78.encodeTable( codedString )
-    local decodedString = Zimpel78.decode( codedString );
+function Zimpel.encodeTable( codedString )
+    local decodedString = Zimpel.decode( codedString );
     return loadstring("return " ..  decodedString)();
 end
 
-return Zimpel78;
+return Zimpel;
