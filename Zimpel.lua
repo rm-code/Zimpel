@@ -182,7 +182,7 @@ end
 -- @param  codedString (string) The string to decode.
 -- @return             (table)  The decoded table.
 --
-function Zimpel.encodeTable( codedString )
+function Zimpel.decodeTable( codedString )
     local decodedString = Zimpel.decode( codedString );
     return loadstring("return " ..  decodedString)();
 end
