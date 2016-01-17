@@ -84,7 +84,6 @@ end
 -- @param  rawString (string) The string to encode.
 -- @return           (string) The created code.
 --
--- TODO Fix encoding if last char is already in dictionary (e.g.: "test").
 function Zimpel78.encode( rawString )
     local dictionary = { [0] = "" };
     local code = "";
