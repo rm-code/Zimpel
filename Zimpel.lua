@@ -27,7 +27,7 @@ local Zimpel = {
 -- Constants
 -- ------------------------------------------------
 
-local MAX_DICTIONARY_SIZE = 9998;
+local MAX_DICTIONARY_SIZE = 9999;
 local ENCODING_PATTERN = '%4d%s';
 local DECODING_MATCH_PATTERN  = '[%w%s][%w%s][%w%s][%w%s].';
 local DECODING_SPLIT_PATTERN = '([%w%s][%w%s][%w%s][%w%s])(.)';
@@ -42,7 +42,7 @@ local DECODING_SPLIT_PATTERN = '([%w%s][%w%s][%w%s][%w%s])(.)';
 -- @param char       (string) The character to add.
 --
 local function addChar( dictionary, char )
-    assert( #dictionary < MAX_DICTIONARY_SIZE, "Max dictionary size reached." );
+    assert( #dictionary < ( MAX_DICTIONARY_SIZE - 1 ), "Max dictionary size reached." );
     dictionary[#dictionary + 1] = char;
 end
 
@@ -134,7 +134,7 @@ function Zimpel.encode( rawString )
 
     -- Push any remaining character on the code.
     if prefix ~= "" then
-        code = code .. string.format( ENCODING_PATTERN, 9999, prefix );
+        code = code .. string.format( ENCODING_PATTERN, MAX_DICTIONARY_SIZE, prefix );
     end
 
     return code;
@@ -166,7 +166,7 @@ function Zimpel.decode( codedString )
         local prefix = getChar( dictionary, tonumber( prefixIndex ));
 
         -- Last entry reached.
-        if tonumber( prefixIndex ) == MAX_DICTIONARY_SIZE + 1 then
+        if tonumber( prefixIndex ) == MAX_DICTIONARY_SIZE then
             postfix = true;
             break;
         end
@@ -179,7 +179,7 @@ function Zimpel.decode( codedString )
     -- Push remaining char on the message. This happens when the code ends with
     -- a character already contained in the dictionary.
     if postfix then
-        local lastChar = codedString:match( "9999(.+)$" );
+        local lastChar = codedString:match( MAX_DICTIONARY_SIZE .. "(.+)$" );
         message = message .. lastChar;
     end
 
