@@ -92,9 +92,9 @@ local function convertTableToString( ptable )
                     toString( v );
                     output = output .. '},';
                 elseif type( k ) == 'number' then
-                    output = output .. string.format( "[%i]='%s',", k, v );
+                    output = output .. string.format( "[%i]=[[%s]],", k, v );
                 else
-                    output = output .. string.format( "%s='%s',", k, v );
+                    output = output .. string.format( "%s=[[%s]],", k, v );
                 end
             end
         end
