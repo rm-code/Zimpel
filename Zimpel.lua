@@ -88,7 +88,11 @@ local function convertTableToString( ptable )
         if type( value ) == 'table' then
             for k, v in pairs( value ) do
                 if type( v ) == 'table' then
-                    output = output .. '[\'' .. tostring( k ) .. '\']={';
+                    if type( k ) == 'number' then
+                        output = output .. string.format( "[%i]={", k )
+                    else
+                        output = output .. string.format( "[\'%s\']={", k )
+                    end
                     toString( v );
                     output = output .. '},';
                 elseif type( k ) == 'number' then
