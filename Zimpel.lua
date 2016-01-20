@@ -1,5 +1,5 @@
 local Zimpel = {
-    _VERSION     = '1.0.0',
+    _VERSION     = '1.0.1',
     _DESCRIPTION = 'A small module able to encode and decode files based on the classic LZ78 algorithm.',
     _URL         = 'https://github.com/rm-code/',
     _LICENSE = [[
