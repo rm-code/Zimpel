@@ -1,5 +1,6 @@
 # Zimpel
 [![Version](https://img.shields.io/badge/Version-1.0.1-blue.svg)](https://github.com/rm-code/Graphoon/releases/latest)
+[![LOVE](https://img.shields.io/badge/L%C3%96VE-0.10.0-EA316E.svg)](http://love2d.org/)
 [![License](http://img.shields.io/badge/Licence-MIT-brightgreen.svg)](LICENSE.md)
 
 A small module able to encode and decode files based on the classic LZ78 algorithm.
