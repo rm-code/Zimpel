@@ -83,8 +83,6 @@ end
 -- @return       (string) The contents of the table written as a string.
 --
 local function convertTableToString( ptable )
-    assert( type( ptable ) == 'table', "Not a lua table!" );
-
     local output = "{";
     local function toString( value )
         if type( value ) == 'table' then
@@ -117,6 +115,7 @@ end
 -- @return           (string) The created code.
 --
 function Zimpel.encode( rawString )
+    assert( type( rawString ) == 'string', "Not a string!" );
     local dictionary = { [0] = "" };
     local code = {};
 
@@ -146,6 +145,7 @@ end
 -- @return       (string) The created code.
 --
 function Zimpel.encodeTable( ptable )
+    assert( type( ptable ) == 'table', "Not a table!" );
     local str = convertTableToString( ptable );
     return Zimpel.encode( str );
 end
@@ -156,6 +156,7 @@ end
 -- @return             (string) The decoded message.
 --
 function Zimpel.decode( codedString )
+    assert( type( codedString ) == 'string', "Not a string!" );
     local dictionary = { [0] = "" };
     local message = {};
 
@@ -192,6 +193,7 @@ end
 -- @return             (table)  The decoded table.
 --
 function Zimpel.decodeTable( codedString )
+    assert( type( codedString ) == 'string', "Not a string!" );
     local decodedString = Zimpel.decode( codedString );
     return loadstring("return " ..  decodedString)();
 end
