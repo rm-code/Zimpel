@@ -1,5 +1,5 @@
 local Zimpel = {
-    _VERSION     = '1.0.0',
+    _VERSION     = '1.0.1',
     _DESCRIPTION = 'A small module able to encode and decode files based on the classic LZ78 algorithm.',
     _URL         = 'https://github.com/rm-code/',
     _LICENSE = [[
@@ -27,7 +27,7 @@ local Zimpel = {
 -- Constants
 -- ------------------------------------------------
 
-local MAX_DICTIONARY_SIZE = 9998;
+local MAX_DICTIONARY_SIZE = 9999;
 local ENCODING_PATTERN = '%4d%s';
 local DECODING_MATCH_PATTERN  = '[%w%s][%w%s][%w%s][%w%s].';
 local DECODING_SPLIT_PATTERN = '([%w%s][%w%s][%w%s][%w%s])(.)';
@@ -42,7 +42,7 @@ local DECODING_SPLIT_PATTERN = '([%w%s][%w%s][%w%s][%w%s])(.)';
 -- @param char       (string) The character to add.
 --
 local function addChar( dictionary, char )
-    assert( #dictionary < MAX_DICTIONARY_SIZE, "Max dictionary size reached." );
+    assert( #dictionary < ( MAX_DICTIONARY_SIZE - 1 ), "Max dictionary size reached." );
     dictionary[#dictionary + 1] = char;
 end
 
@@ -83,20 +83,22 @@ end
 -- @return       (string) The contents of the table written as a string.
 --
 local function convertTableToString( ptable )
-    assert( type( ptable ) == 'table', "Not a lua table!" );
-
     local output = "{";
     local function toString( value )
         if type( value ) == 'table' then
             for k, v in pairs( value ) do
                 if type( v ) == 'table' then
-                    output = output .. '[\'' .. tostring( k ) .. '\']={';
+                    if type( k ) == 'number' then
+                        output = output .. string.format( "[%i]={", k )
+                    else
+                        output = output .. string.format( "[\'%s\']={", k )
+                    end
                     toString( v );
                     output = output .. '},';
                 elseif type( k ) == 'number' then
-                    output = output .. string.format( "[%i]='%s',", k, v );
+                    output = output .. string.format( "[%i]=[[%s]],", k, v );
                 else
-                    output = output .. string.format( "%s='%s',", k, v );
+                    output = output .. string.format( "%s=[[%s]],", k, v );
                 end
             end
         end
@@ -117,15 +119,16 @@ end
 -- @return           (string) The created code.
 --
 function Zimpel.encode( rawString )
+    assert( type( rawString ) == 'string', "Not a string!" );
     local dictionary = { [0] = "" };
-    local code = "";
+    local code = {};
 
     local prefix = "";
     for nextChar in rawString:gmatch('.') do
         local index = lookUp( dictionary, prefix .. nextChar );
         if index == 0 then
             local prefixIndex = lookUp( dictionary, prefix );
-            code = code .. string.format( ENCODING_PATTERN, prefixIndex, nextChar );
+            code[#code + 1] = string.format( ENCODING_PATTERN, prefixIndex, nextChar );
             prefix = "";
         else
             prefix = prefix .. nextChar;
@@ -134,10 +137,10 @@ function Zimpel.encode( rawString )
 
     -- Push any remaining character on the code.
     if prefix ~= "" then
-        code = code .. string.format( ENCODING_PATTERN, 9999, prefix );
+        code[#code + 1] = string.format( ENCODING_PATTERN, MAX_DICTIONARY_SIZE, prefix );
     end
 
-    return code;
+    return table.concat( code );
 end
 
 ---
@@ -146,6 +149,7 @@ end
 -- @return       (string) The created code.
 --
 function Zimpel.encodeTable( ptable )
+    assert( type( ptable ) == 'table', "Not a table!" );
     local str = convertTableToString( ptable );
     return Zimpel.encode( str );
 end
@@ -156,8 +160,9 @@ end
 -- @return             (string) The decoded message.
 --
 function Zimpel.decode( codedString )
+    assert( type( codedString ) == 'string', "Not a string!" );
     local dictionary = { [0] = "" };
-    local message = "";
+    local message = {};
 
     local postfix = false;
 
@@ -166,24 +171,24 @@ function Zimpel.decode( codedString )
         local prefix = getChar( dictionary, tonumber( prefixIndex ));
 
         -- Last entry reached.
-        if tonumber( prefixIndex ) == MAX_DICTIONARY_SIZE + 1 then
+        if tonumber( prefixIndex ) == MAX_DICTIONARY_SIZE then
             postfix = true;
             break;
         end
 
         if lookUp( dictionary, prefix .. nextChar ) == 0 then
-            message = message .. prefix .. nextChar;
+            message[#message + 1] = prefix .. nextChar;
         end
     end
 
     -- Push remaining char on the message. This happens when the code ends with
     -- a character already contained in the dictionary.
     if postfix then
-        local lastChar = codedString:match( "9999(.+)$" );
-        message = message .. lastChar;
+        local lastChar = codedString:match( MAX_DICTIONARY_SIZE .. "(.+)$" );
+        message[#message + 1] = lastChar;
     end
 
-    return message;
+    return table.concat( message );
 end
 
 ---
@@ -192,6 +197,7 @@ end
 -- @return             (table)  The decoded table.
 --
 function Zimpel.decodeTable( codedString )
+    assert( type( codedString ) == 'string', "Not a string!" );
     local decodedString = Zimpel.decode( codedString );
     return loadstring("return " ..  decodedString)();
 end
