@@ -1,4 +1,4 @@
-# Version 1.0.1 ( 2016-01-12 )
+# Version 1.0.1 ( 2016-01-20 )
 - Fixed encoding of tables containing strings with apostrophes
 - Fixed encoding of tables containing sequences
 
