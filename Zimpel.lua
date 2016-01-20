@@ -118,14 +118,14 @@ end
 --
 function Zimpel.encode( rawString )
     local dictionary = { [0] = "" };
-    local code = "";
+    local code = {};
 
     local prefix = "";
     for nextChar in rawString:gmatch('.') do
         local index = lookUp( dictionary, prefix .. nextChar );
         if index == 0 then
             local prefixIndex = lookUp( dictionary, prefix );
-            code = code .. string.format( ENCODING_PATTERN, prefixIndex, nextChar );
+            code[#code + 1] = string.format( ENCODING_PATTERN, prefixIndex, nextChar );
             prefix = "";
         else
             prefix = prefix .. nextChar;
@@ -134,10 +134,10 @@ function Zimpel.encode( rawString )
 
     -- Push any remaining character on the code.
     if prefix ~= "" then
-        code = code .. string.format( ENCODING_PATTERN, MAX_DICTIONARY_SIZE, prefix );
+        code[#code + 1] = string.format( ENCODING_PATTERN, MAX_DICTIONARY_SIZE, prefix );
     end
 
-    return code;
+    return table.concat( code );
 end
 
 ---
@@ -157,7 +157,7 @@ end
 --
 function Zimpel.decode( codedString )
     local dictionary = { [0] = "" };
-    local message = "";
+    local message = {};
 
     local postfix = false;
 
@@ -172,7 +172,7 @@ function Zimpel.decode( codedString )
         end
 
         if lookUp( dictionary, prefix .. nextChar ) == 0 then
-            message = message .. prefix .. nextChar;
+            message[#message + 1] = prefix .. nextChar;
         end
     end
 
@@ -180,10 +180,10 @@ function Zimpel.decode( codedString )
     -- a character already contained in the dictionary.
     if postfix then
         local lastChar = codedString:match( MAX_DICTIONARY_SIZE .. "(.+)$" );
-        message = message .. lastChar;
+        message[#message + 1] = lastChar;
     end
 
-    return message;
+    return table.concat( message );
 end
 
 ---
